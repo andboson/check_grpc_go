@@ -32,6 +32,8 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.helloworld";
 option java_outer_classname = "HelloWorldProto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 package helloworld;
 
@@ -40,6 +42,21 @@ service Greeter {
   // Sends a greeting
   rpc SayHello (HelloRequest1) returns (HelloReply) {}
 }
+
+service EchoService {
+  rpc Echo(EchoMessage) returns (EchoMessage) {
+    option (google.api.http) = {
+      post: "/v1/echo"
+      body: "*"
+    };
+  }
+}
+
+message EchoMessage {
+  string value = 1;
+  google.protobuf.Timestamp time = 2;
+}
+
 
 // The request message containing the user's name.
 message HelloRequest1 {
