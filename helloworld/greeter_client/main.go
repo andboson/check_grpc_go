@@ -47,19 +47,12 @@ const (
 )
 
 func main() {
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	wg.Add(1)
 	var start = time.Now()
-	go send(conn, "joe", 5, &wg)
-	go send(conn, "tim", 5, &wg)
+	go send( "joe", 5, &wg)
+	go send( "tim", 5, &wg)
 	wg.Wait()
 
 	total := time.Since(start)
@@ -69,7 +62,14 @@ func main() {
 }
 
 
-func send(conn  *grpc.ClientConn ,name string, wt int, wg *sync.WaitGroup){
+func send(name string, wt int, wg *sync.WaitGroup){
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
 	c := pb.NewGreeterClient(conn)
 	request := pb.HelloRequest1{}
 	request.Name = name
