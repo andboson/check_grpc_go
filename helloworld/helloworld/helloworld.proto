@@ -40,7 +40,7 @@ package helloworld;
 // The greeting service definition.
 service Greeter {
   // Sends a greeting
-  rpc SayHello (HelloRequest1) returns (HelloReply) {}
+  rpc SayHello (stream HelloRequest1) returns (stream HelloReply) {}
 }
 
 service EchoService {

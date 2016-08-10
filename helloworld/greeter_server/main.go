@@ -36,12 +36,11 @@ package main
 import (
 	"log"
 	"net"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	pb "examples/helloworld/helloworld"
 	"sync"
-	"fmt"
 	"time"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -52,15 +51,31 @@ const (
 type server struct{}
 
 // SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest1) (*pb.HelloReply, error) {
-	msg :=  "Hello " + in.Name
-	if in.WaitMinutes != 0 {
-		time.Sleep( time.Second * time.Duration(in.WaitMinutes))
-		msg += fmt.Sprintf("\n after waiting %d seconds", in.WaitMinutes)
+func (s *server) SayHello(stream pb.Greeter_SayHelloServer) ( error) {
+	for {
+		var msg = new(pb.HelloRequest1)
+		msg, err := stream.Recv()
+		if err != nil {
+			//log.Printf("error recv", err)
+			continue
+		} else {
+			processMsg(stream, msg)
+		}
 	}
 
-	log.Printf("\n Set response for %s", in.Name)
-	return &pb.HelloReply{Message:msg}, nil
+	return nil
+}
+
+func processMsg(stream pb.Greeter_SayHelloServer, msg *pb.HelloRequest1) {
+	log.Printf("accepted message from %s", msg.Name, msg.WaitMinutes)
+	if msg.WaitMinutes != 0 {
+		d := time.Duration(msg.WaitMinutes) * time.Second
+		time.Sleep(d)
+	}
+	stream.SendHeader(metadata.MD{"http":{"x-req","1"}})
+	stream.Send(&pb.HelloReply{
+		Message:"Good day, %s " + msg.Name,
+	})
 }
 
 func main() {
